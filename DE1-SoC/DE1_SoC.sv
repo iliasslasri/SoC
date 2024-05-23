@@ -150,7 +150,7 @@ assign    hex2        =    '0;
 assign    hex3        =    '0;
 assign    hex4        =    '0;
 assign    hex5        =    '0;
-assign    ledr        =    '0;
+// assign    ledr        =    '0;
 
 /////////////////////////////////////////////////////////////////////
 // Sorties video VGA     ////////////////////////////////////////////
@@ -179,4 +179,16 @@ assign ps2_dat       = 'z;
 assign ps2_dat2      = 'z;
 //   Les sorties non utilisées seront mise à zéro
 
+
+//////////////////////////////////////////////////////////////////////
+// Nios-II System
+//////////////////////////////////////////////////////////////////////
+
+ cpu_system u0 (
+	  .clk_clk       ( clock_50 ) ,
+	  .reset_reset_n ( key[0]   ) ,
+	  .sw_export     ( sw       ) ,
+	  .leds_export   ( ledr     )
+ );
+	 
 endmodule
