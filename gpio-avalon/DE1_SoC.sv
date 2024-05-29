@@ -188,7 +188,7 @@ assign ps2_dat2      = 'z;
 	  .clk_clk       ( clock_50 ) ,
 	  .reset_reset_n ( key[0]   ) ,
 	  .sw_export     ( sw       ) ,
-	  .leds_export   ( ledr     )
+	  .leds_out   ( ledr     )
  );
 	 
 endmodule
