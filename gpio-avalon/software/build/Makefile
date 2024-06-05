@@ -26,9 +26,9 @@ VPATH = ../lib ../src
 
 EXE = prog.elf
 # startup/irq/print
-# OBJS  = reset.o nosys_crt0.o nios2_irq.o nios2_jtag_uart.o simple_printf.o
+OBJS  = reset.o nosys_crt0.o nios2_irq.o nios2_jtag_uart.o simple_printf.o
 # User program
-OBJS = test.o 
+OBJS += test.o 
 
 GDB_OPTS = -x gdbscript
 
