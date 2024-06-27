@@ -46,9 +46,26 @@ The critical path: cpu_system:u0|cpu_system_nios2:nios2|cpu_system_nios2_cpu:cpu
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+Problem encountered : ( need more time to solve )
+
+![](./docs/problem_.png)
+![](./docs/problem.png)
 The verification of visual wave forms to ensure the right procedure of encryption and interation is done. And I provided some waveforms (reading, encrypting and writing one 64-bit word) :
 
 ![](./docs/wave.png)
 
 
 ![](./docs/wave2.png)
+
+
