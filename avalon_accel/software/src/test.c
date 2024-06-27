@@ -13,49 +13,49 @@ typedef struct {
 } DMA_t;
 
 #define accel ((volatile DMA_t*)0x8000)
+#define NB_BLOCS 1
 
 // source and destination
-uint32_t src[160];
-uint32_t dest[160];
+uint32_t src[2*NB_BLOCS];
+uint32_t dest[2*NB_BLOCS];
 
 // for timer
-// unsigned int t_start, t_end;
+volatile unsigned int t_start, t_end;
 
 void handler()
 {
-    // t_end = interval_timer_val();
-    // simple_printf("time 0x%x (%u) -> duration %u \n",t_start, t_end, t_end-t_start);
-    const char *fmt1 = "encryption done.";
+    t_end = interval_timer_val();
+    simple_printf("\n\n\nTime 0x%x (%u) -> duration %u \n\n\n\n",t_start, t_end, t_end-t_start);
+
+    const char *fmt1 = "Encryption done.\n";
     simple_printf(fmt1);
     accel->ctrl = 0;
-    simple_printf("Source : \n");
-    for(int i=0; i<160; i++){
-        simple_printf("%d", src[i]);
-    }
 
-    simple_printf("\nEncryption : \n");
-    for(int i=0; i<160; i++){
-        simple_printf("%d", dest[i]);
+    simple_printf("Encryption of one block :");
+    simple_printf("plaintext :      |key:                              |cipher text\n");
+    for(int i=0; i<2*NB_BLOCS; i++){
+        simple_printf(" 0x%x                   0x%x             => ", src[i], 0x0);
+        simple_printf("            0x%x   \n", dest[i]);
     }
-    while(1){
-
-    }
+    while(1);
 }
 
 void main()
 {
     RegisterISR(1, handler);
+    RegisterISR(2, interval_timer_ISR);
     irq_enable();
 
     // timer 
-    // interval_timer_start();
+    interval_timer_start();
+    interval_timer_init_periodic();
     simple_printf("Let's start...\n");
 
     // writing params
-    accel->k[0] = (uint32_t)0xdeadbeef;
-    accel->k[1] = (uint32_t)0xc01dcafe;
-    accel->k[2] = (uint32_t)0xbadec0de;
-    accel->k[3] = (uint32_t)0x8badf00d;
+    accel->k[0] = (uint32_t)0x0;
+    accel->k[1] = (uint32_t)0x0;
+    accel->k[2] = (uint32_t)0x0;
+    accel->k[3] = (uint32_t)0x0;
     accel->src = (uint32_t) src;
     accel->dest = (uint32_t) dest;
     
@@ -63,30 +63,26 @@ void main()
     // src
     simple_printf("\nSource in %x  init \n", src);
 
-    src[0] = 0;
-    src[1] = 1;
-    src[2] = 2;
-    src[2] = 3;
-    for(int i=4; i<160; i++){
-        src[i] = 0;
+    for(int i=0; i<2*NB_BLOCS; i++){
+        src[i] = (uint32_t) 0x0;
     }
 
     simple_printf("\nDestination in %x init ...\n", dest);
 
-    for(int i=0; i<160; i++){
-        dest[i] = 0;
+    for(int i=0; i<2*NB_BLOCS; i++){
+        dest[i] = (uint32_t)0x0;
     }
 
-    accel->num = (uint32_t) 0x00000080;
+    accel->num = (uint32_t) 2*NB_BLOCS;
 
-    for(int i=0; i<160; i++){
-        simple_printf("%d", src[i]);
+    for(int i=0; i<2*NB_BLOCS; i++){
+        simple_printf("%x", src[i]);
     }
 
-    const char *fmt = "send cmd to start encryption...\n";
+    const char *fmt = "\nSending cmd to start encryption...\n";
     simple_printf(fmt);
 
-    // t_start = interval_timer_val();
+    t_start = interval_timer_val();
     accel->ctrl = (uint32_t) 1;
     while(1);
 }

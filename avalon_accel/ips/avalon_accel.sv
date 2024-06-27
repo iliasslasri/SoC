@@ -46,10 +46,10 @@ always_ff@(posedge clk or negedge reset_n)
     for(int i=0; i<8; i++)
       R[i] <= '0;
   else
-    if(avs_write)
+    if(avs_write) 
       R[avs_address[4:2]] <= avs_writedata;
 
-assign avs_readdata = R[avs_address[4:2]];
+assign avs_readdata = (avs_address == 5'h1c) ? !(state == wait_for_crtl) : R[avs_address[4:2]];
 
 // __________________ \\
 // ______ FSM _______ \\
@@ -123,11 +123,11 @@ always_ff@(posedge clk or negedge reset_n)
   else
   begin
      if (state == write_frst_word && !avm_waitrequest) begin
-      avm_writedata <= ct[31:0];
+      avm_writedata <= ct[63:32];
       write_addr_reg <= write_addr_reg + 4;
      end
      if (state == write_scd_word  && !avm_waitrequest) begin
-      avm_writedata <= ct[63:32];
+      avm_writedata <= ct[31:0];
       write_addr_reg <= write_addr_reg + 4;
      end
      if (state == wait_for_crtl)  write_addr_reg <= dest_addr_reg;
