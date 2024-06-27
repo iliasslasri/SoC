@@ -4,17 +4,17 @@ module avalon_accel(
   // target interface
   input         avs_write,
   input  [31:0] avs_writedata,
-  output logic [31:0] avs_readdata,
+  output [31:0] avs_readdata,
   input  [4:0]  avs_address,
   // initiator interface
-  output    logic    avm_write,
-  output        logic avm_read,
+  output  logic avm_write,
+  output  logic avm_read,
   input         avm_waitrequest,
   output logic [31:0] avm_writedata,
   input  [31:0] avm_readdata,
   output logic [31:0] avm_address,
   // interrupt
-  output logic interrupt_sender_irq
+  output logic irq
 );
 
 /*******************************
@@ -40,137 +40,132 @@ wire[31:0]          ctrl_reg = R[7];
 wire start_dma = ctrl_reg;
 
 
+// Avalon Target interface to update the registers
+always_ff@(posedge clk or negedge reset_n)
+  if(!reset_n)
+    for(int i=0; i<8; i++)
+      R[i] <= '0;
+  else
+    if(avs_write)
+      R[avs_address[4:2]] <= avs_writedata;
 
 assign avs_readdata = R[avs_address[4:2]];
 
-//-----------------
-// ------ FSM -----
-// ----------------
-parameter s1   = 3'b000;
-parameter s2_1 = 3'b001;
-parameter s2_2 = 3'b010;
-parameter s3   = 3'b011;
-parameter s4_1 = 3'b100;
-parameter s4_2 = 3'b101;
-parameter s5   = 3'b110;
-parameter s6   = 3'b111;
-reg [2:0] state;
+// __________________ \\
+// ______ FSM _______ \\
+// __________________ \\
+
+enum logic [3:0] {wait_for_crtl, read_frst_word, read_scd_word, start_encr, wait_end_encry, write_frst_word, write_scd_word, gen_irq} state; 
 
 // for accelerator
 logic [63:0] ct;
 logic [63:0] pt;
-logic eoc, start;
+logic eoc;
 
 
-// Avalon Target interface to update the registers
+logic[31:0] read_addr_reg;
+logic[31:0] write_addr_reg;
+logic[31:0] blk_reg;
+
 always_ff@(posedge clk or negedge reset_n)
   if(!reset_n)
-    begin
-      avm_address <= 0;
-      avm_read <= 0;
-      avm_write <= 0;
-      avm_writedata <= 0;
-      state <= s1;
-      for(int i=0; i<8;i++)
-        R[i] <= '0;
-    end
-  else begin
-    if(avs_write)
-      R[avs_address[4:2]] <= avs_writedata;
-    /// FSM ------
-    case(state)
-      s1 : begin
-        if(start_dma)
-          state <= s2_1;
+    read_addr_reg <= '0;
+  else
+  begin
+     if (state == read_frst_word && !avm_waitrequest) begin
+          read_addr_reg <= read_addr_reg + 4;
+          pt[31:0] <= avm_readdata;
+     end
+     if (state == read_scd_word  && !avm_waitrequest) begin 
+        read_addr_reg <= read_addr_reg + 4;
+        pt[63:32] <= avm_readdata;
       end
-
-      // Reading the first 32-bit word
-      s2_1 :
-          if(num_blk_reg != 0)
-            begin
-              avm_write <= 0;
-              avm_read <= 1;
-              avm_address <= R[4];
-              if(!avm_waitrequest)begin
-                R[4] <= R[4] + 4;
-                pt[31:0] <= avm_readdata;
-                state <= s2_2;
-              end
-            end
-          else
-            state <= s1;
-      
-      // Reading the second 32-bit word
-      s2_2 :
-            begin
-              avm_read <= 1;
-              avm_address <= R[4];
-              if(!avm_waitrequest)begin
-                R[4] <= R[4] + 4;
-                pt[63:32] <= avm_readdata;
-                state <= s3;
-                start <= 1;
-              end
-            end
-      
-      // Waiting the end of decrypting
-      s3: begin 
-          start <= 0;
-          avm_read <= 0;
-          if(eoc) state <= s4_1;
-        end
-      
-      // writing first 32-bit word to mem
-      s4_1: begin
-          avm_write <= 1;
-          if(!avm_waitrequest)begin
-            avm_writedata <= ct[31:0];
-            avm_address <= dest_addr_reg;
-            R[5] <= R[5] + 4;
-            state <= s4_2;
-          end
-      end
-
-      // writing second 32-bit word to mem
-      s4_2: begin
-          avm_write <= 1;
-          if(!avm_waitrequest)begin
-            avm_writedata <= ct[63:32];
-            avm_address <= R[5];
-            R[5] <= R[5] + 4;
-
-            // decreùenting block number 
-            R[6] = R[6] - 1;
-
-            if(R[6] == 0)begin
-              state <= s5;
-
-            end
-            else state <= s2_1;
-          end
-          
-      end
-
-      // gen of interruption
-      s5 : begin
-        state <= s6;
-      end
-      
-      // waiting for ack
-      s6 : begin
-        if(ctrl_reg == 0)
-          state <= s1;
-      end
-    endcase
-
+     if (state == wait_for_crtl)  read_addr_reg <= src_addr_reg;
   end
 
+always_ff@(posedge clk or negedge reset_n)
+  if(!reset_n)begin
+      avm_address <= '0;
+      avm_read <= 0;
+      avm_write <= 0;
+    end
+  else begin
+    if(state == read_scd_word || state == read_frst_word)begin
+      avm_address <= read_addr_reg;
+      avm_read <= 1;
+      avm_write <= 0;
+    end
+    else if(state == write_scd_word || state == write_frst_word)begin
+      avm_address <= write_addr_reg;
+      avm_read <= 0;
+      avm_write <= 1;
+    end
+    else begin
+      avm_read <= 0;
+      avm_write <= 0;
+    end
+  end
+
+
+always_ff@(posedge clk or negedge reset_n)
+  if(!reset_n)
+    blk_reg <= '0;
+  else
+    begin
+      if (state == start_encr) blk_reg <= blk_reg - 1;
+      if (state == wait_for_crtl)  blk_reg <= num_blk_reg;
+    end
+
+
+always_ff@(posedge clk or negedge reset_n)
+  if(!reset_n)
+    write_addr_reg <= '0;
+  else
+  begin
+     if (state == write_frst_word && !avm_waitrequest) begin
+      avm_writedata <= ct[31:0];
+      write_addr_reg <= write_addr_reg + 4;
+     end
+     if (state == write_scd_word  && !avm_waitrequest) begin
+      avm_writedata <= ct[63:32];
+      write_addr_reg <= write_addr_reg + 4;
+     end
+     if (state == wait_for_crtl)  write_addr_reg <= dest_addr_reg;
+  end
+
+wire start_present = (state == start_encr);
+
+
+always_ff@(posedge clk or negedge reset_n)
+  if(!reset_n)
+    state <= wait_for_crtl;
+  else
+    case(state)
+      wait_for_crtl :
+        if(start_dma) state <= read_frst_word;
+      read_frst_word :
+	      if(!avm_waitrequest) state <= read_scd_word;
+      read_scd_word :
+	      if(!avm_waitrequest) state <= start_encr;
+      start_encr :
+      	state <= wait_end_encry;
+      wait_end_encry :
+	      if (eoc) state <= write_frst_word ;
+      write_frst_word :
+        if(!avm_waitrequest) state <= write_scd_word;
+      write_scd_word :
+        if(!avm_waitrequest) if(blk_reg) state <= read_frst_word;
+                              else state <= gen_irq;
+      gen_irq :
+      	if (!start_dma) state <= wait_for_crtl;
+    endcase 
+ 
 always_ff @(posedge clk or negedge reset_n)
   if(!reset_n)
-    interrupt_sender_irq <= 0;
+    irq <= 0;
   else begin
-    if(state == s5) interrupt_sender_irq <= 1;
-    else if(state == s6)  interrupt_sender_irq <= 0;
+    if(state == gen_irq) irq <= 1;
+    else if(irq)  irq <= 0;
   end
 
 //// -------------- \\\\\
@@ -178,7 +173,7 @@ always_ff @(posedge clk or negedge reset_n)
 present my_inst (
                  .clk(clk),
                  .nrst(reset_n),
-                 .start(start),
+                 .start(start_present),
                  .eoc(eoc),
                  .plaintext(pt),
                  .key(key_reg),

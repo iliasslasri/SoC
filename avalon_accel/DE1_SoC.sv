@@ -184,9 +184,9 @@ assign ps2_dat2      = 'z;
 // Nios-II System
 //////////////////////////////////////////////////////////////////////
 
- cpu_system u0 (
-	  .clk_clk       ( clock_50 ) ,
-	  .reset_reset_n ( key[0]   )
- );
+cpu_system u0 (
+      .clk_clk       ( clock_50 ) ,
+      .reset_reset_n ( key[0]   )
+);
 	 
 endmodule
