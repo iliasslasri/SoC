@@ -49,13 +49,13 @@ always_ff@(posedge clk or negedge reset_n)
     if(avs_write) 
       R[avs_address[4:2]] <= avs_writedata;
 
-assign avs_readdata = (avs_address == 5'h1c) ? !(state == wait_for_crtl) : R[avs_address[4:2]];
 
 // __________________ \\
 // ______ FSM _______ \\
 // __________________ \\
 
 enum logic [3:0] {wait_for_crtl, read_frst_word, read_scd_word, start_encr, wait_end_encry, write_frst_word, write_scd_word, gen_irq} state; 
+assign avs_readdata = (avs_address == 5'h1c) ? !(state == wait_for_crtl) : R[avs_address[4:2]];
 
 // for accelerator
 logic [63:0] ct;
@@ -68,35 +68,51 @@ logic[31:0] write_addr_reg;
 logic[31:0] blk_reg;
 
 always_ff@(posedge clk or negedge reset_n)
-  if(!reset_n)
-    read_addr_reg <= '0;
+  if(!reset_n)begin
+    read_addr_reg <= '0;      
+    avm_address <= '0;
+  end
   else
   begin
      if (state == read_frst_word && !avm_waitrequest) begin
           read_addr_reg <= read_addr_reg + 4;
-          pt[31:0] <= avm_readdata;
+          avm_address <= read_addr_reg;
+          pt[63:32] <= avm_readdata;
      end
      if (state == read_scd_word  && !avm_waitrequest) begin 
         read_addr_reg <= read_addr_reg + 4;
-        pt[63:32] <= avm_readdata;
+        avm_address <= read_addr_reg;
+        pt[31:0] <= avm_readdata;
       end
-     if (state == wait_for_crtl)  read_addr_reg <= src_addr_reg;
+    if (state == write_frst_word && !avm_waitrequest) begin
+      avm_writedata <= ct[63:32];
+      write_addr_reg <= write_addr_reg + 4;
+      avm_address <= write_addr_reg;
+     end
+     if (state == write_scd_word  && !avm_waitrequest) begin
+      avm_writedata <= ct[31:0];
+      write_addr_reg <= write_addr_reg + 4;
+      avm_address <= write_addr_reg;
+     end
+     if (state == wait_for_crtl) begin 
+        write_addr_reg <= dest_addr_reg;
+        read_addr_reg <= src_addr_reg;
+      end
   end
 
 always_ff@(posedge clk or negedge reset_n)
   if(!reset_n)begin
-      avm_address <= '0;
       avm_read <= 0;
       avm_write <= 0;
     end
   else begin
     if(state == read_scd_word || state == read_frst_word)begin
-      avm_address <= read_addr_reg;
+      // avm_address <= read_addr_reg;
       avm_read <= 1;
       avm_write <= 0;
     end
     else if(state == write_scd_word || state == write_frst_word)begin
-      avm_address <= write_addr_reg;
+      // avm_address <= write_addr_reg;
       avm_read <= 0;
       avm_write <= 1;
     end
@@ -116,22 +132,6 @@ always_ff@(posedge clk or negedge reset_n)
       if (state == wait_for_crtl)  blk_reg <= num_blk_reg;
     end
 
-
-always_ff@(posedge clk or negedge reset_n)
-  if(!reset_n)
-    write_addr_reg <= '0;
-  else
-  begin
-     if (state == write_frst_word && !avm_waitrequest) begin
-      avm_writedata <= ct[63:32];
-      write_addr_reg <= write_addr_reg + 4;
-     end
-     if (state == write_scd_word  && !avm_waitrequest) begin
-      avm_writedata <= ct[31:0];
-      write_addr_reg <= write_addr_reg + 4;
-     end
-     if (state == wait_for_crtl)  write_addr_reg <= dest_addr_reg;
-  end
 
 wire start_present = (state == start_encr);
 

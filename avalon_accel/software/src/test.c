@@ -2,7 +2,7 @@
 #include "simple_printf.h"
 #include <stdint.h>
 #include "interval_timer.h"
-
+#include <string.h>
 
 typedef struct {
     uint32_t k[4];
@@ -83,6 +83,22 @@ void main()
     simple_printf(fmt);
 
     t_start = interval_timer_val();
+    
     accel->ctrl = (uint32_t) 1;
+
+    // Do not set control to 1, when using memecpy benchmark.
+
+    // char dest[17];
+    // strcpy(dest,"Heloooo Iliass!!\0");
+    // char src_txt[17];
+    // strcpy(src_txt,"Heloooo Lasri!!!\0");
+    // simple_printf("Before memcpy dest = %s\n", dest);
+    // t_start = interval_timer_val();
+
+    // memcpy(dest, src_txt, strlen(src_txt)+1);
+    // t_end = interval_timer_val();
+    // simple_printf("After memcpy dest = %s\n", dest);
+    // simple_printf("\n\n\nTime 0x%x (%u) -> duration %u \n\n\n\n",t_start, t_end, t_end-t_start);
+
     while(1);
 }
