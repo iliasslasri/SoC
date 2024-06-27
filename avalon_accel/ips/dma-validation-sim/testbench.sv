@@ -68,35 +68,47 @@ begin
 
   wait(reset_n);
 
-  // TODO: Put this configuration in an array or a struct
-  avalon_write(CTRL_ADDR, 0);
-  #33ns;
-  // key
-  avalon_write(K0_ADDR, 32'hdeadbeef);
-  #33ns;
-  avalon_write(K1_ADDR, 32'hc01dcafe);
-  avalon_write(K2_ADDR, 32'hbadec0de);
-  avalon_write(K3_ADDR, 32'h8badf00d);
-  #33ns;
-  avalon_write(SRC_ADDR, 32'h00000000);
-  #33ns;
-  avalon_write(DEST_ADDR, 32'h00000100);
-  #33ns;
-  avalon_write(NUM_ADDR, 32'h00000080);
-  #33ns;
-  // read back the registers
-  $display("-----------------------------------");
-  $display("# Read back configuration registers");
-  for(int i=0;i<'h20; i=i+4) begin
-    logic [31:0] r;
-    avalon_read(i, r);
-    $display(" - address %02h -> %08h",i,r);
-  end
-  $display("-----------------------------------");
-  // start
-  avalon_write(CTRL_ADDR, 1);
+  // // TODO: Put this configuration in an array or a struct
+  // avalon_write(CTRL_ADDR, 0);
+  // #33ns;
+  // // key
+  // avalon_write(K0_ADDR, 32'h0);
+  // #33ns;
+  // avalon_write(K1_ADDR, 32'h0);
+  // avalon_write(K2_ADDR, 32'h0);
+  // avalon_write(K3_ADDR, 32'h0);
+  // #33ns;
+  // avalon_write(SRC_ADDR, 32'h00000000);
+  // #33ns;
+  // avalon_write(DEST_ADDR, 32'h00000100);
+  // #33ns;
+  // avalon_write(NUM_ADDR, 32'h00000001);
+  // #33ns;
+  // // read back the registers
+  // $display("-----------------------------------");
+  // $display("# Read back configuration registers");
+  // for(int i=0;i<'h20; i=i+4) begin
+  //   logic [31:0] r;
+  //   avalon_read(i, r);
+  //   $display(" - address %02h -> %08h",i,r);
+  // end
+  // $display("-----------------------------------");
+  // // start
+  // avalon_write(CTRL_ADDR, 1);
 
-  wait_irq_with_timeout(1us*'h80);
+  // wait_irq_with_timeout(1us*'h80);
+
+  // displaying the destination 
+  // $display("-----------------------------------");
+  // $display("# Read back the destination");
+  // for(int i=0;i<'h8; i=i+4) begin
+  //   logic [31:0] r;
+  //   avalon_read((32'h00000100)+i, r);
+  //   $display(" - address %02h -> %08h",(32'h00000100)+i,r);
+  // end
+  // #1us;
+  // $stop();
+  
 
   // ack irq
   avalon_write(CTRL_ADDR, 0);

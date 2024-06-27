@@ -1,0 +1,71 @@
+# //  Questa Sim-64
+# //  Version 2023.2_1 linux_x86_64 May 12 2023
+# //
+# //  Copyright 1991-2023 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  QuestaSim and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# vsim testbench -do "wave.do" 
+# Start time: 23:02:15 on Jun 27,2024
+# ** Note: (vsim-3813) Design is being optimized due to module recompilation...
+# ** Warning: (vopt-10587) Some optimizations are turned off because the +acc switch is in effect. This will cause your simulation to run slowly. Please use -access/-debug to maintain needed visibility.
+# ** Note: (vopt-143) Recognized 1 FSM in module "avalon_accel(fast)".
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=0, Warnings=1.
+# Loading sv_std.std
+# Loading work.verbosity_pkg(fast)
+# Loading work.avalon_mm_pkg(fast)
+# Loading work.testbench(fast)
+# Loading work.avalon_accel(fast)
+# Loading work.present(fast)
+# Loading work.present_pkg(fast)
+# Loading work.present_dp(fast)
+# Loading work.present_ctrl(fast)
+# Loading work.avalon_sram_model(fast)
+# Loading work.avalon_master_bfm_module(fast)
+# Loading work.avalon_utilities_pkg(fast)
+# Loading work.altera_avalon_mm_master_bfm(fast)
+# do wave.do
+run -all
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: - Hello from altera_avalon_mm_master_bfm
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   $Revision: #1 $
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   $Date: 2019/10/06 $
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   AV_ADDRESS_W             = 5
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   AV_SYMBOL_W              = 8
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   AV_NUMSYMBOLS            = 4
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   AV_BURSTCOUNT_W          = 1
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   REGISTER_WAITREQUEST     = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   AV_FIX_READ_LATENCY      = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   AV_MAX_PENDING_READS     = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   AV_MAX_PENDING_WRITES    = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_READ                 = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_WRITE                = 1
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_ADDRESS              = 1
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_BYTE_ENABLE          = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_BURSTCOUNT           = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_READ_DATA            = 1
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_READ_DATA_VALID      = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_WRITE_DATA           = 1
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_BEGIN_TRANSFER       = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_BEGIN_BURST_TRANSFER = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_WAIT_REQUEST         = 1
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_LOCK                 = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_DEBUGACCESS          = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_TRANSACTIONID        = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_WRITERESPONSE        = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_READRESPONSE         = 0
+#                    0: INFO: testbench.master.mm_master_bfm.__hello: -   USE_CLKEN                = 0
+#                    0: INFO: ------------------------------------------------------------
+# ** Info: Got IRQ from the the DUT
+#    Time: 33850 ns  Scope: testbench.wait_irq_with_timeout File: testbench.sv Line: 51
+# ** Note: $stop    : testbench.sv(131)
+#    Time: 34850 ns  Iteration: 0  Instance: /testbench
+# Break in Module testbench at testbench.sv line 131
+# End time: 23:06:36 on Jun 27,2024, Elapsed time: 0:04:21
+# Errors: 0, Warnings: 1

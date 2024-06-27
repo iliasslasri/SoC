@@ -59,40 +59,37 @@ assign avs_readdata = (avs_address == 5'h1c) ? !(state == wait_for_crtl) : R[avs
 
 // for accelerator
 logic [63:0] ct;
+logic [63:0] ct_sauv;
 logic [63:0] pt;
+
 logic eoc;
 
 
 logic[31:0] read_addr_reg;
 logic[31:0] write_addr_reg;
 logic[31:0] blk_reg;
-
+ 
 always_ff@(posedge clk or negedge reset_n)
   if(!reset_n)begin
-    read_addr_reg <= '0;      
-    avm_address <= '0;
+    read_addr_reg <= '0;
   end
   else
   begin
      if (state == read_frst_word && !avm_waitrequest) begin
           read_addr_reg <= read_addr_reg + 4;
-          avm_address <= read_addr_reg;
           pt[63:32] <= avm_readdata;
      end
      if (state == read_scd_word  && !avm_waitrequest) begin 
         read_addr_reg <= read_addr_reg + 4;
-        avm_address <= read_addr_reg;
         pt[31:0] <= avm_readdata;
       end
     if (state == write_frst_word && !avm_waitrequest) begin
-      avm_writedata <= ct[63:32];
+      avm_writedata <= ct_sauv[63:32];
       write_addr_reg <= write_addr_reg + 4;
-      avm_address <= write_addr_reg;
      end
      if (state == write_scd_word  && !avm_waitrequest) begin
-      avm_writedata <= ct[31:0];
+      avm_writedata <= ct_sauv[31:0];
       write_addr_reg <= write_addr_reg + 4;
-      avm_address <= write_addr_reg;
      end
      if (state == wait_for_crtl) begin 
         write_addr_reg <= dest_addr_reg;
@@ -104,15 +101,16 @@ always_ff@(posedge clk or negedge reset_n)
   if(!reset_n)begin
       avm_read <= 0;
       avm_write <= 0;
+      avm_address <= '0;
     end
   else begin
     if(state == read_scd_word || state == read_frst_word)begin
-      // avm_address <= read_addr_reg;
+      avm_address <= read_addr_reg;
       avm_read <= 1;
       avm_write <= 0;
     end
     else if(state == write_scd_word || state == write_frst_word)begin
-      // avm_address <= write_addr_reg;
+      avm_address <= write_addr_reg;
       avm_read <= 0;
       avm_write <= 1;
     end
@@ -150,9 +148,14 @@ always_ff@(posedge clk or negedge reset_n)
       start_encr :
       	state <= wait_end_encry;
       wait_end_encry :
-	      if (eoc) state <= write_frst_word ;
+	      if (eoc)begin
+          state <= write_frst_word;
+          ct_sauv = ct;
+        end
       write_frst_word :
-        if(!avm_waitrequest) state <= write_scd_word;
+        if(!avm_waitrequest) begin 
+          state <= write_scd_word;
+        end
       write_scd_word :
         if(!avm_waitrequest) if(blk_reg) state <= read_frst_word;
                               else state <= gen_irq;
@@ -179,4 +182,15 @@ present my_inst (
                  .key(key_reg),
                  .ciphertext(ct)
                 );
+    
+// with blk_reg incrementing register
+// always_comb
+//   if(state == read_frst_word && !avm_waitrequest)
+//     avm_address = src_addr_reg + 8*blk_reg;
+//   else if(state == read_scd_word && !avm_waitrequest)
+//     avm_address = src_addr_reg + 8*blk_reg +4;
+//   else if(state == write_frst_word && !avm_waitrequest)
+//     avm_address = dest_addr_reg + 8*blk_reg;
+//   else if(state == write_scd_word && !avm_waitrequest)
+//     avm_address = dest_addr_reg + 8*blk_reg+4;
 endmodule

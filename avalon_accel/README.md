@@ -1,4 +1,27 @@
 ## 
+
+#### Big Endian 
+In this work, I encrypt words of 64 bits by reading the first 32-bit word in memory as the most significant bits in the word then incrementing the source adresse to get the least significant bits of the 64-bits word to increment. Then we write in memory just like that by writing the least significant 32-bit first. 
+
+For example, in the testbench : 
+
+we read from adress 32'h00000200 -> 0xbade0080, then from adresse 32'h00000204 to get 0xbade0081.
+
+Then we have a 64-bit word : 0xbade0080bade0081
+
+We decrypt it as : 0x8e2ab6498f04b9ae
+
+
+and we verify this encoding by using the soft inmplementation : 
+
+
+crdn-04% ./present bade0080bade0081 0011223344556677 8899aabbccddeeff
+
+plaintext :      |key:                              |cipher text
+
+bade0080bade0081 |0011223344556677 8899aabbccddeeff |8e2ab6498f04b9ae
+
+# c text 8e2ab6498f04b9ae
 #### The encryption of one block takes 644.
 Compared to a software implementation running on nios2, it took 340664, so the advantage is significant as the hardware implementation is much faster.
 compared to memcpy, the nios takes 957, to copy a 17 char string, which is normal as we should do $17*2$ memory reads and $17*2$ memory writes.
